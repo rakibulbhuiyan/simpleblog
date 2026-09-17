@@ -1,0 +1,30 @@
+{
+  "name": "simpleblog",
+  "version": "1.0.0",
+  "description": "create with nodeJS",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rakibulbhuiyan/simpleblog.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/rakibulbhuiyan/simpleblog/issues"
+  },
+  "homepage": "https://github.com/rakibulbhuiyan/simpleblog#readme",
+  "dependencies": {
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "mongoose": "^9.10.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}
