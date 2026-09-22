@@ -1,0 +1,90 @@
+// Prisma schema — https://pris.ly/d/prisma-schema
+// After changing this file run `npm run db:migrate` to create a migration.
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  user
+  admin
+}
+
+enum PostStatus {
+  draft
+  published
+}
+
+model User {
+  id           String    @id @default(uuid(7)) @db.Uuid
+  name         String    @db.VarChar(60)
+  username     String    @unique @db.VarChar(30)
+  email        String    @unique @db.VarChar(254)
+  passwordHash String    @map("password_hash")
+  bio          String?   @db.VarChar(280)
+  avatar       String?   @db.VarChar(2048)
+  role         Role      @default(user)
+  posts        Post[]
+  comments     Comment[]
+  likes        Like[]
+  createdAt    DateTime  @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt    DateTime  @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@map("users")
+}
+
+model Post {
+  id          String     @id @default(uuid(7)) @db.Uuid
+  title       String     @db.VarChar(150)
+  slug        String     @unique @db.VarChar(120)
+  excerpt     String     @db.VarChar(300)
+  content     String
+  coverImage  String?    @map("cover_image") @db.VarChar(2048)
+  tags        String[]   @default([])
+  status      PostStatus @default(draft)
+  readingTime Int        @default(1) @map("reading_time")
+  views       Int        @default(0)
+  publishedAt DateTime?  @map("published_at") @db.Timestamptz(3)
+  authorId    String     @map("author_id") @db.Uuid
+  author      User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comments    Comment[]
+  likes       Like[]
+  createdAt   DateTime   @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt   DateTime   @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([status, publishedAt(sort: Desc)])
+  @@index([authorId])
+  @@index([tags], type: Gin)
+  @@map("posts")
+}
+
+model Comment {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  content   String   @db.VarChar(2000)
+  postId    String   @map("post_id") @db.Uuid
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  authorId  String   @map("author_id") @db.Uuid
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz(3)
+
+  @@index([postId, createdAt])
+  @@map("comments")
+}
+
+model Like {
+  userId    String   @map("user_id") @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  postId    String   @map("post_id") @db.Uuid
+  post      Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+
+  @@id([userId, postId])
+  @@index([postId])
+  @@map("post_likes")
+}

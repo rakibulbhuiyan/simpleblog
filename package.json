@@ -1,30 +1,59 @@
 {
   "name": "simpleblog",
-  "version": "1.0.0",
-  "description": "create with nodeJS",
+  "version": "2.0.0",
+  "description": "A modern full-stack blog: Express 5, PostgreSQL + Prisma, React 19 and Tailwind CSS",
   "main": "server.js",
   "scripts": {
+    "dev": "prisma generate && concurrently -k -n api,web -c cyan,magenta \"npm:dev:api\" \"npm:dev:web\"",
+    "dev:api": "nodemon server.js",
+    "dev:web": "npm run dev --prefix client",
+    "build": "prisma generate && npm install --prefix client && npm run build --prefix client",
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "test": "prisma generate && node --test \"tests/**/*.test.js\"",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:seed": "prisma db seed",
+    "db:studio": "prisma studio",
+    "db:reset": "prisma migrate reset"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rakibulbhuiyan/simpleblog.git"
   },
-  "keywords": [],
+  "keywords": [
+    "blog",
+    "express",
+    "postgresql",
+    "prisma",
+    "react"
+  ],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
+  "engines": {
+    "node": ">=22.22.0"
+  },
   "bugs": {
     "url": "https://github.com/rakibulbhuiyan/simpleblog/issues"
   },
   "homepage": "https://github.com/rakibulbhuiyan/simpleblog#readme",
   "dependencies": {
-    "dotenv": "^17.4.2",
+    "@prisma/adapter-pg": "7.10.0",
+    "@prisma/client": "7.10.0",
+    "cookie-parser": "^1.4.7",
     "express": "^5.2.1",
-    "mongoose": "^9.10.1"
+    "express-rate-limit": "^8.7.0",
+    "helmet": "^8.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "morgan": "^1.12.1",
+    "zod": "^4.6.5"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "@electric-sql/pglite": "^0.5.8",
+    "@electric-sql/pglite-socket": "^0.2.11",
+    "concurrently": "^10.0.5",
+    "nodemon": "^3.1.14",
+    "prisma": "7.10.0",
+    "supertest": "^7.2.2"
   }
 }

@@ -1,3 +1,6 @@
+# Generated Prisma client (run `npx prisma generate`)
+src/generated/
+
 # Logs
 logs
 *.log
