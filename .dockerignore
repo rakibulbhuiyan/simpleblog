@@ -1,0 +1,22 @@
+# Dependencies and build output are created inside the image
+node_modules
+client/node_modules
+client/dist
+src/generated
+
+# Secrets never belong in an image
+.env
+.env.*
+!.env.example
+
+# Local noise
+.git
+.gitignore
+.vscode
+.idea
+*.log
+npm-debug.log*
+tests
+Dockerfile
+.dockerignore
+docker-compose*.yml

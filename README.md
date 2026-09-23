@@ -80,6 +80,36 @@ npm run dev
 - App: http://localhost:5173
 - API: http://localhost:5000/api
 
+## Run with Docker
+
+Everything (PostgreSQL, migrations, the API and the built React app) comes up with one command. You only need `JWT_SECRET` in your `.env`.
+
+```bash
+docker compose up --build            # http://localhost:5000
+docker compose --profile seed up seed  # optional: demo authors and stories
+docker compose down                  # stop (add -v to also delete the database volume)
+```
+
+What happens: PostgreSQL starts and becomes healthy → the `migrate` service applies `prisma/migrations` → the app starts and serves the API and the UI on port 5000.
+
+The database container publishes host port **5433** so it can't clash with a PostgreSQL you already run locally. Override anything through the environment (or `.env`):
+
+| Variable | Default | Purpose |
+| --- | --- | --- |
+| `JWT_SECRET` | *(required)* | Session signing secret |
+| `PORT` | `5000` | Host port for the app |
+| `DB_PORT` | `5433` | Host port for PostgreSQL |
+| `POSTGRES_USER` / `POSTGRES_PASSWORD` / `POSTGRES_DB` | `postgres` / `postgres` / `simpleblog` | Database credentials inside Compose |
+| `SITE_URL` | – | Absolute URL used in the RSS feed and sitemap |
+
+Prefer developing on the host but want the database in Docker? Start just the database and point `.env` at it:
+
+```bash
+docker compose up -d db
+# DATABASE_URL="postgresql://postgres:postgres@localhost:5433/simpleblog?schema=public"
+npm run dev
+```
+
 ## Scripts
 
 | Command | What it does |

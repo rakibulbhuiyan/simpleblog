@@ -1,0 +1,76 @@
+# Runs PostgreSQL, applies migrations, then starts the app.
+#   docker compose up --build            -> http://localhost:5000
+#   docker compose --profile seed up seed -> load demo content
+#
+# Values come from your .env (JWT_SECRET is required).
+
+x-database-url: &database-url
+  postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-simpleblog}?schema=public
+
+services:
+  db:
+    image: postgres:18-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-simpleblog}
+    # Host port 5433 by default so it can't clash with a local PostgreSQL.
+    ports:
+      - "${DB_PORT:-5433}:5432"
+    # postgres:18+ expects the whole directory to be mounted, not .../data
+    volumes:
+      - db-data:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-simpleblog}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  # One-shot: brings the schema up to date before the app starts.
+  migrate:
+    build:
+      context: .
+      target: builder
+    command: npx prisma migrate deploy
+    environment:
+      DATABASE_URL: *database-url
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  app:
+    build: .
+    restart: unless-stopped
+    init: true
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      DATABASE_URL: *database-url
+      JWT_SECRET: ${JWT_SECRET:?set JWT_SECRET in your .env}
+      SITE_URL: ${SITE_URL:-}
+    ports:
+      - "${PORT:-5000}:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+
+  # Optional demo content: docker compose --profile seed up seed
+  seed:
+    profiles: ["seed"]
+    build:
+      context: .
+      target: builder
+    command: node prisma/seed.js
+    environment:
+      DATABASE_URL: *database-url
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: "no"
+
+volumes:
+  db-data:
